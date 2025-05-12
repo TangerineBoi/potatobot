@@ -1,7 +1,14 @@
 #thank you for all the apis. made by potato boi
 
+#table of contents
+#game api
+#anime api
+#game bot
+#join vc
+
 # This example requires the 'message_content' intent.
 from discord.ext import commands, tasks
+import nest_asyncio
 import discord
 import time
 
@@ -77,9 +84,10 @@ async def deals(ctx, title: str, numSearch: int):
 
 
 @bot.command(brief='Search some anime using (prefix)anime (name)')
-async def anime(ctx, search: str):
-    
+async def anime(ctx, *, search: str):
+
     url = f"https://api.jikan.moe/v4/anime?q={search}"
+    
 
     # Make an API request
     response = requests.get(url)
@@ -91,6 +99,7 @@ async def anime(ctx, search: str):
                     data = await response.json()  # Parse the JSON response
                     
                     animeName = str(data['data'][0]["url"])
+                    
                     title = str(data['data'][0]['titles'][0]['title'])   #WTF??? LOL
                     await ctx.send(f"Anime name: {title} \n{animeName}")
                 except:
@@ -113,10 +122,6 @@ def save_data(data):
     with open('economy.json', 'w') as f:
         json.dump(data, f, indent=5)
 
-
-def resetAll():
-    return {'balance': 100, 'energy': 100, 'base': 1,'mult':1, 'luck': 1, 'inv': []}  # hard reset   
-
 # STATS
 @bot.command(brief='Shows all stats.')
 async def s(ctx):
@@ -125,23 +130,22 @@ async def s(ctx):
     balance = int(data[user_id]["balance"])
     energy = data[user_id]["energy"]
     if user_id not in data:
-        data[user_id] = resetAll()  # Give a starting balance if the user doesn't have one
+        data[user_id] = {'balance': 100, 'energy': 100, 'mult':1, 'base':1, 'inv': []}  # Give a starting balance if the user doesn't have one
         save_data(data) 
         await ctx.send(f"Hello new player! Your balance is ${balance}.\n You have {energy} energy.")    
     else:
-        await ctx.send(f"You have ${int(balance)}.\nYou have {int(energy)} energy.\nYou have a {data[user_id]['mult']:.1f}x job multiplier.\nLuck: LVL {data[user_id]["luck"]}\nBase work stats: {data[user_id]["base"]}\nInv: {data[user_id]["inv"]}")
+        await ctx.send(f"You have ${int(balance)}.\nYou have {int(energy)} energy.\nYou have a {data[user_id]['mult']:.1f}x job multiplier.\nBase work stats: {data[user_id]['base']}")
 
 
-#  RESET  
+#  RESET      
 @bot.command(brief='Resets all values.')
 async def reset(ctx):
     data = load_data()  
     user_id = str(ctx.author.id)
-    data[user_id] = resetAll()  # hard reset
-    
+    data[user_id] = {'balance': 100, 'energy': 100, 'base': 1,'mult':1, 'inv': []}  # hard reset
     save_data(data)
     balance = data[user_id]['balance']
-    await ctx.send(f'Reset complete.\n Balance: ${balance}. \nEnergy:{data[user_id]["energy"]}.\nBase: {data[user_id]["base"]}\nMult:{data[user_id]["mult"]}\nInv: {data[user_id]["base"]}') 
+    await ctx.send(f'Reset complete.\n Balance: ${balance}. \nEnergy:{data[user_id]["energy"]}.\nBase: {data[user_id]["base"]}\nMult:{data[user_id]["mult"]}') 
 
 #    WORK
 @bot.command(brief='Work to gain money.', description='Gain money, lose energy.')  
@@ -149,11 +153,10 @@ async def w(ctx, place: str):
     data = load_data()  
     user_id = str(ctx.author.id)
     
-    
-    if place == "j":
+    if place == "o":
 
         try:
-            randWork = random.randint(6 + data[user_id]['base'], 10 + data[user_id]['base'])  #rand num
+            randWork = random.randint(1 + data[user_id]['base'],6 + data[user_id]['base'])  #rand num
             data[user_id]['energy'] -= 10 
             randWorkNum1 = random.randint(10,50)
             randWorkNum2 = random.randint(20,50)
@@ -170,11 +173,11 @@ async def w(ctx, place: str):
 
                 if int(response.content) == (randWorkNum1 + randWorkNum2):
                     data[user_id]['balance'] += randWork * data[user_id]['mult'] #get money    
-                    await ctx.send(f'Correct, work complete. You earned ${int(randWork)} * {data[user_id]['mult']:.1f}x. \nYour balance is now ${int(data[user_id]['balance'])  }. \nYou have {data[user_id]['energy']} energy.')
+                    await ctx.send(f"Correct, work complete. You earned ${int(randWork)} * {data[user_id]['mult']:.1f}x. \nYour balance is now ${int(data[user_id]['balance'])  }. \nYou have {data[user_id]['energy']} energy.")
                     save_data(data)
                 else:   #fail
                     data[user_id]['balance'] -= randWork
-                    await ctx.send(f'Work failed! You lost ${int(randWork)}.\nNew balance: ${data[user_id]['balance']}.')
+                    await ctx.send(f"Work failed! You lost ${int(randWork)}.\nNew balance: ${data[user_id]['balance']}.")
                     save_data(data)
                 if data[user_id]["balance"] < 0:
                     await ctx.send("\nYou failed and died on the streets. GG\nYour stats were reset, hopefully in this life you prosper.")
@@ -188,31 +191,24 @@ async def w(ctx, place: str):
     elif place == "c":
         data = load_data()  
         user_id = str(ctx.author.id)
+        await ctx.send('You look for hidden treasures and loot.')
+        randGold = random.randint(1,20)
+        randLoot = random.randint(1,10)
+        randTrash = random.randint(1,5)
 
-        if data[user_id]['energy'] > 0:
-            await ctx.send('You look for hidden treasures and loot.')
-            randGold = random.randint(1,15 - data[user_id]["luck"])
-            randLoot = random.randint(1,10 - data[user_id]["luck"])
-            randTrash = random.randint(1,3)
+        if randGold == 5:
+            await ctx.send('Found gold!!!')
+            data[user_id][inv].append("gold")
+        if randLoot == 5:
+            await ctx.send('Found loot!')
+            data[user_id][inv].append("loot")
+        if randTrash == 2:
+            await ctx.send('Found trash...')
+            data[user_id][inv].append("trash")
+        if randGold != 5 and randLoot != 5 and randTrash != 2:
+            await ctx.send('You went home emptyhanded :(') 
 
-            if randGold == 1:
-                await ctx.send('Found gold!!!')
-                data[user_id]["inv"].append("gold")
-                
-            if randLoot == 1:  
-                await ctx.send('Found loot!')
-                data[user_id]["inv"].append("loot")
-            if randTrash == 1:
-                await ctx.send('Found trash...')
-                data[user_id]["inv"].append("trash")
-            if randGold != 1 and randLoot != 1 and randTrash != 1:
-                await ctx.send('You went home emptyhanded :(') 
-            save_data(data)
-        else:
-            await ctx.send("Too tired to walk... Do `!shop` to restore energy!")
 
-    else:  #invalid parameter
-        await ctx.send("do `!w j` for your job, and `!w c` to scavenge for loot!")
 ##  SHOP
 def pillsCost(ctx):
     data = load_data()  
@@ -279,39 +275,35 @@ async def buy(ctx, item: str):
     
     save_data(data)
 
-
-#SELL
-@bot.command(brief='Sell gold, loot, and scrap.', description='read desc.')   #not needed due to !s
-async def sell(ctx, item: str):
+@bot.command(brief='They might be worth something.', description='read desc.')
+async def inv(ctx):
     data = load_data()  
     user_id = str(ctx.author.id)
-    
-    if data[user_id]["inv"]:   #checks empty
-        if item == "all":
-            for i in data[user_id]["inv"]:
-                if i == "gold":
-                    data[user_id]["inv"].remove("gold")
-                    goldPrice = random.randint(20, 50)
-                    data[user_id]['balance'] += goldPrice
-                    await ctx.send(f"You sold gold for ${goldPrice}!")
-                if i == "loot":
-                    data[user_id]["inv"].remove("loot")
-                    lootPrice = random.randint(10, 20)
-                    data[user_id]['balance'] += lootPrice
-                    await ctx.send(f"You sold loot for ${lootPrice}.")
-                if i == "trash":
-                    data[user_id]["inv"].remove(i)
-                    trashPrice = random.randint(2, 6)
-                    data[user_id]['balance'] += trashPrice
-                    await ctx.send(f"You sold trash for ${trashPrice}!")
-        save_data(data)
+    await ctx.send(f'{data[user_id][inv]}')
+
+@bot.command(brief='Make the bot join a voice channel',description='join vc')
+async def join(ctx):
+    member = ctx.author
+    channel = ctx.message.author.voice.channel
+    if member.voice and member.voice.channel:
+        await ctx.send(f"Joining {channel.name}")
+        await channel.connect()
     else:
-        await ctx.send("You don't have anything to sell...")
+        await ctx.send("You are not in a vc")
+
 
 
 ####TOKEN! KEEP SAFE!
-bot.run('NjY4NTQxNTUzNzk0NDgyMTk1.GH4vs3.EDXyPfS02knqlfEYomvrbUtHqF3BJw2GglJ3F8')
+bot.run('NjY4NTQxNTUzNzk0NDgyMTk1.GqwBby.hY_FAttJPUL8raTE_vHKSFhTeOdjO-oZovsc2E')
 
-#ideas
+##ideas#
 #energy meter?
 #shop?
+#getting bot onto vc?  ####DONE!
+#implementing char.ai? (HARD TO DO CHAR.AI!! CHATGPT MAYBE)   
+#bot using TTS from the AI?
+#being able to use speech to text to talk to the AI?
+
+## errors: 
+#inv command
+#actually getting loot in inv
