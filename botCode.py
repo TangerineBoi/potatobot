@@ -294,13 +294,13 @@ async def join(ctx):
 
 
 ####TOKEN! KEEP SAFE!
-bot.run('NjY4NTQxNTUzNzk0NDgyMTk1.GqwBby.hY_FAttJPUL8raTE_vHKSFhTeOdjO-oZovsc2E')
+bot.run(botToken)
 
 ##ideas#
 #energy meter?
 #shop?
 #getting bot onto vc?  ####DONE!
-#implementing char.ai? (HARD TO DO CHAR.AI!! CHATGPT MAYBE)   
+#implementing char.ai? (CANT DO CHAR.AI!! OPENAI MAYBE)   
 #bot using TTS from the AI?
 #being able to use speech to text to talk to the AI?
 
