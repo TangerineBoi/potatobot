@@ -1,2 +1,4 @@
 # potatobot
-discord bot to understand api-related stuff more
+A discord bot to understand api-related stuff more.
+
+
